@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simple AR Box</title>
+
+<style>
+body {
+    margin: 0;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+}
+
+#startAR {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 999;
+    padding: 12px 20px;
+    font-size: 18px;
+    cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<button id="startAR">تشغيل AR</button>
+
+<script type="module">
+import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+import { ARButton } from 'https://unpkg.com/three@0.160.0/examples/jsm/webxr/ARButton.js';
+
+let camera, scene, renderer;
+let cube;
+
+init();
+
+function init() {
+
+    scene = new THREE.Scene();
+
+    camera = new THREE.PerspectiveCamera(
+        70,
+        window.innerWidth / window.innerHeight,
+        0.01,
+        20
+    );
+
+    renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: true
+    });
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.xr.enabled = true;
+
+    document.body.appendChild(renderer.domElement);
+
+    const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
+    scene.add(light);
+
+    // مربع ثلاثي الأبعاد
+    const geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+    const material = new THREE.MeshStandardMaterial({
+        color: 0x00ff00
+    });
+
+    cube = new THREE.Mesh(geometry, material);
+
+    // يظهر أمام المستخدم
+    cube.position.set(0, 0, -1);
+
+    scene.add(cube);
+
+    document.getElementById("startAR").addEventListener("click", () => {
+
+        document.body.appendChild(
+            ARButton.createButton(renderer, {
+                requiredFeatures: ['local']
+            })
+        );
+
+        // الضغط تلقائياً على زر AR الذي أنشأته المكتبة
+        setTimeout(() => {
+            const btn = document.querySelector('button:last-of-type');
+            if (btn) btn.click();
+        }, 500);
+
+    });
+
+    renderer.setAnimationLoop(render);
+
+    window.addEventListener('resize', onWindowResize);
+}
+
+function render() {
+
+    cube.rotation.x += 0.01;
+    cube.rotation.y += 0.01;
+
+    renderer.render(scene, camera);
+}
+
+function onWindowResize() {
+
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(
+        window.innerWidth,
+        window.innerHeight
+    );
+}
+</script>
+
+</body>
+</html>
